@@ -42,6 +42,7 @@ class MandelEMLViewer:
 
     def compute_image(self):
         image = np.zeros((self.height, self.width), dtype=np.float32)
+        log_R = np.log(self.escape_radius)  # precompute log(R) for smooth coloring
 
         xs = np.linspace(self.xmin, self.xmax, self.width)
         ys = np.linspace(self.ymin, self.ymax, self.height)
@@ -51,34 +52,41 @@ class MandelEMLViewer:
                 c = complex(x, y)
 
                 if abs(c) < 1e-14:
-                    image[j, i] = 0
+                    image[j, i] = self.max_iter  # treat as inside the set
                     continue
 
                 z = 0j
                 escaped = False
+                n = -1
 
                 try:
-                    lc = cmath.log(c)  # principal branch
+                    lc = cmath.log(c)  # principal branch Log(c)
 
                     for n in range(self.max_iter):
-                        z = cmath.exp(z) - lc
+                        z = cmath.exp(z) - lc  # z_{n+1} = exp(z_n) - Log(c)
 
                         if abs(z) > self.escape_radius:
-                            # Smooth coloring
-                            try:
-                                nu = n + 1 - np.log(np.log(abs(z))) / np.log(2)
-                            except ValueError:
-                                nu = n + 1
-                            image[j, i] = nu
+                            # Smooth coloring for EML set:
+                            # normalise by log(R) instead of log(2) since the
+                            # map is transcendental (not a degree-2 polynomial)
+                            log_z = np.log(abs(z))
+                            if log_z > log_R:
+                                nu = n + 1 - np.log(log_z / log_R) / log_R
+                            else:
+                                nu = float(n + 1)
+                            image[j, i] = max(0.0, nu)
                             escaped = True
                             break
 
-                except (OverflowError, ValueError):
-                    image[j, i] = self.max_iter
+                except OverflowError:
+                    # exp(z) is astronomically large → orbit escaped at iteration n
+                    image[j, i] = float(max(0, n))
                     escaped = True
+                except (ValueError, ZeroDivisionError):
+                    pass  # handled by the not-escaped branch below
 
                 if not escaped:
-                    image[j, i] = 0
+                    image[j, i] = self.max_iter  # orbit stayed bounded → inside the set
 
         return image
 
@@ -97,6 +105,8 @@ class MandelEMLViewer:
                 origin="lower",
                 cmap="magma",
                 interpolation="bilinear",
+                vmin=0,
+                vmax=self.max_iter,
             )
             self.ax.set_title("Mandel-EML: scroll=zoom, left-drag=pan")
             self.ax.set_xlabel("Re(c)")
@@ -104,6 +114,7 @@ class MandelEMLViewer:
             self.fig.colorbar(self.image_artist, ax=self.ax, label="escape time")
         else:
             self.image_artist.set_data(image)
+            self.image_artist.set_clim(0, self.max_iter)
             self.image_artist.set_extent([self.xmin, self.xmax, self.ymin, self.ymax])
 
         self.ax.set_xlim(self.xmin, self.xmax)

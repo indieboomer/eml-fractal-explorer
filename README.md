@@ -30,7 +30,7 @@ The goal is to study and visualize the set of complex numbers (c) for which the 
 
 ## Goals
 
-1. Build an interactive visualization tool for the Mandel-EML set.
+1. Build an interactive visualization tool for the EML Fractal set.
 2. Explore the structure and properties of this fractal.
 3. Experiment with alternative parameterizations and iteration rules.
 4. Optimize rendering performance for real-time exploration.
@@ -80,7 +80,7 @@ This is numerically more stable and easier to explore.
 
 ## Current Features
 
-* Static rendering of Mandel-EML set
+* Static rendering of EML Fractal set
 * Interactive navigation:
 
   * Mouse scroll → zoom
@@ -196,7 +196,7 @@ Render corresponding Julia sets.
 ## Research Directions
 
 * Is there a meaningful “connectedness locus”?
-* Does Mandel-EML exhibit self-similarity?
+* Does EML Fractal exhibit self-similarity?
 * Can we classify stable regions analytically?
 * What is the role of logarithm branch choice?
 * Is there a canonical normalization for EML dynamics?

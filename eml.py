@@ -1,9 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import cmath
 
 # ============================================
-# Mandel-EML interactive viewer
+# EML Fractal interactive viewer
 # z_{n+1} = exp(z_n) - Log(c),   z_0 = 0
 # Controls:
 #   - Mouse wheel: zoom in/out
@@ -11,11 +10,11 @@ import cmath
 # ============================================
 
 
-class MandelEMLViewer:
+class EMLFractalViewer:
     def __init__(self):
         # Initial view
-        self.xmin, self.xmax = -3.0, 3.0
-        self.ymin, self.ymax = -3.0, 3.0
+        self.xmin, self.xmax = -1.0, 3.0
+        self.ymin, self.ymax = -2.0, 2.0
 
         # Render settings
         self.width = 800
@@ -41,52 +40,45 @@ class MandelEMLViewer:
         self.render()
 
     def compute_image(self):
-        image = np.zeros((self.height, self.width), dtype=np.float32)
-        log_R = np.log(self.escape_radius)  # precompute log(R) for smooth coloring
+        log_R = np.log(self.escape_radius)
 
         xs = np.linspace(self.xmin, self.xmax, self.width)
         ys = np.linspace(self.ymin, self.ymax, self.height)
 
-        for j, y in enumerate(ys):
-            for i, x in enumerate(xs):
-                c = complex(x, y)
+        # Build full complex grid: shape (height, width)
+        C = xs[np.newaxis, :] + 1j * ys[:, np.newaxis]
 
-                if abs(c) < 1e-14:
-                    image[j, i] = self.max_iter  # treat as inside the set
-                    continue
+        # Points where c ≈ 0 are treated as inside the set (log undefined)
+        near_zero = np.abs(C) < 1e-14
+        log_C = np.log(np.where(near_zero, 1.0, C))  # safe; near_zero pixels stay inside
 
-                z = 0j
-                escaped = False
-                n = -1
+        Z = np.zeros((self.height, self.width), dtype=np.complex128)
+        image = np.full((self.height, self.width), float(self.max_iter), dtype=np.float32)
 
-                try:
-                    lc = cmath.log(c)  # principal branch Log(c)
+        # active: pixels still being iterated
+        active = ~near_zero
 
-                    for n in range(self.max_iter):
-                        z = cmath.exp(z) - lc  # z_{n+1} = exp(z_n) - Log(c)
+        with np.errstate(over="ignore", invalid="ignore"):
+            for n in range(self.max_iter):
+                # z_{n+1} = exp(z_n) - Log(c)  — only for pixels not yet escaped
+                Z[active] = np.exp(Z[active]) - log_C[active]
 
-                        if abs(z) > self.escape_radius:
-                            # Smooth coloring for EML set:
-                            # normalise by log(R) instead of log(2) since the
-                            # map is transcendental (not a degree-2 polynomial)
-                            log_z = np.log(abs(z))
-                            if log_z > log_R:
-                                nu = n + 1 - np.log(log_z / log_R) / log_R
-                            else:
-                                nu = float(n + 1)
-                            image[j, i] = max(0.0, nu)
-                            escaped = True
-                            break
+                abs_Z = np.abs(Z)
+                newly_escaped = active & (abs_Z > self.escape_radius)
 
-                except OverflowError:
-                    # exp(z) is astronomically large → orbit escaped at iteration n
-                    image[j, i] = float(max(0, n))
-                    escaped = True
-                except (ValueError, ZeroDivisionError):
-                    pass  # handled by the not-escaped branch below
+                if newly_escaped.any():
+                    # Smooth coloring: normalise by log(R) for transcendental map
+                    lz = np.log(abs_Z[newly_escaped])
+                    nu = np.where(
+                        lz > log_R,
+                        n + 1.0 - np.log(lz / log_R) / log_R,
+                        float(n + 1),
+                    )
+                    image[newly_escaped] = np.maximum(0.0, nu)
+                    active &= ~newly_escaped
 
-                if not escaped:
-                    image[j, i] = self.max_iter  # orbit stayed bounded → inside the set
+                if not active.any():
+                    break
 
         return image
 
@@ -108,7 +100,7 @@ class MandelEMLViewer:
                 vmin=0,
                 vmax=self.max_iter,
             )
-            self.ax.set_title("Mandel-EML: scroll=zoom, left-drag=pan")
+            self.ax.set_title("EML Fractal: scroll=zoom, left-drag=pan")
             self.ax.set_xlabel("Re(c)")
             self.ax.set_ylabel("Im(c)")
             self.fig.colorbar(self.image_artist, ax=self.ax, label="escape time")
@@ -200,5 +192,5 @@ class MandelEMLViewer:
 
 
 if __name__ == "__main__":
-    viewer = MandelEMLViewer()
+    viewer = EMLFractalViewer()
     plt.show()

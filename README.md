@@ -1,5 +1,7 @@
 # EML Fractal Explorer
-
+<p align="center">
+  <img src="eml-fractal.png" />
+</p>
 Original paper on eml(x,y) operator here: https://arxiv.org/html/2603.21852v2
 
 ## Overview

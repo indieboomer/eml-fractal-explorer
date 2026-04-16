@@ -1,5 +1,19 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.colors import LinearSegmentedColormap
+
+# LSD-style cycling colormap: black → blue → cyan → green → lime → orange → deep orange → violet → black
+_EML_CMAP = LinearSegmentedColormap.from_list(
+    "eml_lsd",
+    [
+        "#000011",  # near-black (interior)
+        "#0033ff",  # vivid blue
+        "#00ccff",  # sky blue / cyan
+        "#00ff99",  # bright green
+        "#aaff00",  # lime
+    ],
+    N=512,
+)
 
 # ============================================
 # EML Fractal interactive viewer
@@ -95,7 +109,7 @@ class EMLFractalViewer:
                 image,
                 extent=[self.xmin, self.xmax, self.ymin, self.ymax],
                 origin="lower",
-                cmap="magma",
+                cmap=_EML_CMAP,
                 interpolation="bilinear",
                 vmin=0,
                 vmax=self.max_iter,

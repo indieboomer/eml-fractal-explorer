@@ -1,5 +1,5 @@
 # Mandel-EML Explorer
-
+Original paper on eml(x,y) operator here: https://arxiv.org/html/2603.21852v2
 ## Overview
 
 This project explores a novel Mandelbrot-like fractal defined using the operator:

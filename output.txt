@@ -1,0 +1,3 @@
+EML-Bulb  res=96^3  power=8  max_iter=32  escape_radius=8.0  bounds=±2.0
+  iter   1/32  active=884,736/884,736  iter   2/32  active=884,736/884,736  iter   3/32  active=463,700/884,736  iter   4/32  active=61,608/884,736  iter   5/32  active=9,314/884,736  iter   6/32  active=1,474/884,736  iter   7/32  active=244/884,736  iter   8/32  active=48/884,736  iter   9/32  active=14/884,736
+  Done. Inside (bounded): 0/884,736

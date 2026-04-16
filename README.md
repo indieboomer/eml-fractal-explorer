@@ -2,11 +2,11 @@
 <p align="center">
   <img src="eml-fractal.png" width="400px"/>
 </p>
-Original paper on eml(x,y) operator here: https://arxiv.org/html/2603.21852v2
-
 ## Overview
 
 This project explores a novel Mandelbrot-like fractal defined using the operator eml(x,y) described by Andrzej Odrzywołek in: https://arxiv.org/html/2603.21852v2
+
+(3D Mandel-bulb like EML-bulb fractal rendering is under development and not working properly yet)
 
 [
 elm(a, b) = e^a - \ln(b)

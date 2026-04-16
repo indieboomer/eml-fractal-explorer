@@ -1,4 +1,4 @@
-# Mandel-EML Explorer
+# EML Fractal Explorer
 
 ## Overview
 
